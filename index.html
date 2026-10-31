@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X HUB by v - Ultimate Free Fire Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* เป้ากลางจอโปร่งแสงอัจฉริยะ */
+        #crosshair-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            z-index: 99999;
+            width: 30px;
+            height: 30px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .crosshair-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #00ffcc;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #00ffcc, 0 0 12px #00ffcc;
+        }
+
+        .crosshair-line {
+            position: absolute;
+            background-color: rgba(0, 255, 204, 0.8);
+            box-shadow: 0 0 5px #00ffcc;
+        }
+        .line-top { top: 0; width: 2px; height: 8px; }
+        .line-bottom { bottom: 0; width: 2px; height: 8px; }
+        .line-left { left: 0; width: 8px; height: 2px; }
+        .line-right { right: 0; width: 8px; height: 2px; }
+
+        /* Floating Hub Container */
+        .hub-container {
+            width: 90%;
+            max-width: 380px;
+            background: rgba(18, 18, 28, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1.5px solid rgba(255, 0, 85, 0.6);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
+            overflow: hidden;
+            z-index: 10000;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .hub-header {
+            background: linear-gradient(135deg, #ff0055, #ff5500);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hub-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hub-subtitle {
+            font-size: 10px;
+            opacity: 0.9;
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .hub-body {
+            padding: 16px;
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        .section-category {
+            color: #ff7700;
+            font-size: 11px;
+            font-weight: 700;
+            margin: 12px 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        .section-category::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 8px;
+        }
+
+        .control-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(25, 25, 40, 0.8);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Modern iOS-style Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #33334d; transition: 0.3s;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 18px; width: 18px; left: 2px; bottom: 2px;
+            background-color: white; transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: #ff0055; border-color: #ff0055; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-core {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            margin-top: 8px;
+            transition: transform 0.1s ease, filter 0.2s;
+        }
+        .btn-core:active { transform: scale(0.97); }
+
+        .btn-launch {
+            background: linear-gradient(135deg, #00ffcc, #0099ff);
+            color: #050508;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
+        }
+
+        .btn-visibility {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-display {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #00ffcc;
+            text-align: center;
+            border-left: 3px solid #00ffcc;
+        }
+
+        /* โหมดซ่อนเมนูสำหรับอัดคลิป TikTok */
+        .hidden-mode {
+            opacity: 0.08 !important;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- เป้ากลางจอโปร่งแสงอัจฉริยะ -->
+    <div id="crosshair-container">
+        <div class="crosshair-dot"></div>
+        <div class="crosshair-line line-top"></div>
+        <div class="crosshair-line line-bottom"></div>
+        <div class="crosshair-line line-left"></div>
+        <div class="crosshair-line line-right"></div>
+    </div>
+
+    <!-- เมนูหลัก X HUB by v -->
+    <div class="hub-container" id="hubMenu">
+        <div class="hub-header">
+            <span class="hub-title">X HUB by v</span>
+            <span class="hub-subtitle">FF ULTIMATE</span>
+        </div>
+
+        <div class="hub-body">
+            <div class="section-category">🎯 ระบบช่วยเล็ง & ล็อกเป้า</div>
+            
+            <div class="control-item">
+                <span class="control-label">Pro Crosshair (เป้าเล็งกลางจอ)</span>
+                <label class="switch">
+                    <input type="checkbox" id="crosshairSwitch" onchange="handleCrosshair(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- เพิ่มระบบล็อกหัวตรงนี้ -->
+            <div class="control-item" style="border: 1px solid rgba(255, 0, 85, 0.4); background: rgba(255, 0, 85, 0.05);">
+                <span class="control-label" style="font-weight: 700; color: #ff3366;">🔥 Auto Headshot (ล็อกหัว 100%)</span>
+                <label class="switch">
+                    <input type="checkbox" onchange="handleToggle('Auto Headshot (ล็อกหัวเต็มระบบ)', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="control-item">
+                <span class="control-label">Neck-to-Head (ล็อกคอขึ้นหัวเนียนๆ)</span>
+                <label class="switch">
+                    <input type="checkbox" onchange="handleToggle('ระบบดึงคอขึ้นหัว', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="control-item">
+                <span class="control-label">Smart Recoil (คุมแรงดีดอัตโนมัติ)</span>
+                <label class="switch">
+                    <input type="checkbox" onchange="handleToggle('ระบบคุมแรงดีดนิ่ง', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="section-category">🚀 ระบบเชื่อมต่อเกม</div>
+            
+            <button class="btn-core btn-launch" onclick="launchFreeFire()">🎮 เปิดเกม Free Fire ทันที</button>
+            <button class="btn-core btn-visibility" onclick="toggleStealthMode()">👁️ โหมดซ่อนเมนู (ทำคลิป TikTok)</button>
+
+            <div class="status-display" id="statusText">
+                สถานะ: พร้อมใช้งาน (ระบบล็อกหัวพร้อมทำงาน)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleToggle(featureName, isActive) {
+            const statusEl = document.getElementById('statusText');
+            if (isActive) {
+                statusEl.innerText = `เปิดใช้งาน: ${featureName}`;
+                statusEl.style.color = "#00ffcc";
+                statusEl.style.borderLeftColor = "#00ffcc";
+            } else {
+                statusEl.innerText = `ปิดใช้งาน: ${featureName}`;
+                statusEl.style.color = "#ff5555";
+                statusEl.style.borderLeftColor = "#ff5555";
+            }
+        }
+
+        function handleCrosshair(isActive) {
+            const crosshair = document.getElementById('crosshair-container');
+            const statusEl = document.getElementById('statusText');
+            if (isActive) {
+                crosshair.style.display = 'flex';
+                statusEl.innerText = "เปิดใช้งาน: เป้าเล็งกลางจอ Pro";
+                statusEl.style.color = "#00ffcc";
+            } else {
+                crosshair.style.display = 'none';
+                statusEl.innerText = "ปิดใช้งาน: เป้าเล็งกลางจอ";
+                statusEl.style.color = "#ff5555";
+            }
+        }
+
+        function launchFreeFire() {
+            const statusEl = document.getElementById('statusText');
+            statusEl.innerText = "กำลังเชื่อมต่อเข้าสู่ Free Fire...";
+            statusEl.style.color = "#ffaa00";
+            statusEl.style.borderLeftColor = "#ffaa00";
+
+            setTimeout(() => {
+                window.location.href = "freefire://";
+            }, 400);
+
+            setTimeout(() => {
+                window.location.href = "intent://launch#Intent;package=com.dts.freefireth;end;";
+            }, 1000);
+        }
+
+        let isStealth = false;
+        function toggleStealthMode() {
+            const menu = document.getElementById('hubMenu');
+            const statusEl = document.getElementById('statusText');
+            isStealth = !isStealth;
+            if (isStealth) {
+                menu.classList.add('hidden-mode');
+                statusEl.innerText = "เข้าสู่โหมดซ่อนเมนู (แตะหน้าจอเพื่อเรียกกลับ)";
+            } else {
+                menu.classList.remove('hidden-mode');
+                statusEl.innerText = "แสดงเมนูควบคุมปกติ";
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (isStealth && e.target === document.body) {
+                toggleStealthMode();
+            }
+        });
+    </script>
+</body>
+</html>
